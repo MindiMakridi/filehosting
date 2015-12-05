@@ -1,0 +1,29 @@
+{%extends 'layout.html' %}
+{% block page_title%} Recent Uploads {% endblock %}
+{% block main_class %} class="active" {% endblock %}
+{% block content %}
+<div class="jumbotron">
+    <table class="table table-hover table-bordered">
+    <thead>
+        <tr>
+            <th>Filename</th>
+            <th>Size</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for file in files%}
+        <tr>
+            <td>
+                <a href="http://filehosting.ru/files/{{file.getId()}}">{{file.getFileName()}}</a>
+            </td>
+            <td>
+                {{file.getFormattedSize()}}
+            </td>
+            <td>
+                {{file.getEvent()}}
+            </td>
+            {% endfor %}
+    </tbody>
+</div>
+{% endblock %}

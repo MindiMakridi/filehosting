@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+{% block page_title%} Main Page {% endblock %}
+{% block home_class %} class="active" {% endblock %}
+{% block content %} 
+<div class="upload-form">
+    <form enctype="multipart/form-data" action = "/" method="POST">
+        <input type="hidden" name="MAX_FILE_SIZE" value="10000000">
+        <input name="userfile" type="file" required>
+        <button type="submit" class="btn btn-default">Загрузить</button>
+    </form>
+</div>
+{% endblock %}
