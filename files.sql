@@ -25,10 +25,10 @@ DROP TABLE IF EXISTS `files`;
 CREATE TABLE `files` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `filename` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `size` float NOT NULL,
-  `event` datetime NOT NULL,
+  `size` int(11) NOT NULL,
+  `upload_time` datetime NOT NULL,
   `comment` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `token` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `token` varchar(200) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'COOKIE value of the original uploader',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -52,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-12-05 14:53:55
+-- Dump completed on 2015-12-13 17:15:19
