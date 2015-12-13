@@ -15,7 +15,7 @@ spl_autoload_register(function($class){
 
 });
 
-echo Settings::USER;
+
 
 $app = new \Slim\Slim(array(
     'view' => new \Slim\Views\Twig(),
