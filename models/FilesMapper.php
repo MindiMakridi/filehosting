@@ -14,10 +14,10 @@ class FilesMapper
         
         try {
             $this->DBH->beginTransaction();
-            $STH = $this->DBH->prepare("INSERT INTO files VALUES(NULL, :filename, :size, :event, :comment, :token)");
+            $STH = $this->DBH->prepare("INSERT INTO files VALUES(NULL, :filename, :size, :upload_time, :comment, :token)");
             $STH->bindValue(":filename", $file->getFileName());
             $STH->bindValue(":size", $file->getSize());
-            $STH->bindValue(":event", $file->getEvent());
+            $STH->bindValue(":upload_time", $file->getupload_time());
             $STH->bindValue(":comment", $file->getComment());
             $STH->bindValue(":token", $file->getToken());
             $STH->execute();

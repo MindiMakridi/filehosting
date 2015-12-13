@@ -8,15 +8,15 @@
         <h1>
     </div>
     {% if file.isImage()%}
-    <a href="http://filehosting.ru/public/files/{{file.getId()}}{{file.getfileName()}}">
-    <img src="http://filehosting.ru/public/thumbs/{{file.getId()}}{{file.getfileName()}}">
+    <a href="http://filehosting.ru/files/{{file.getId()}}{{file.getfileName()}}">
+    <img src="http://filehosting.ru/thumbs/{{file.getId()}}{{file.getfileName()}}">
     </a>
     {% endif %}
     <section>
         <p>{{file.getComment()}}</p>
     </section>
     <section>
-        <p>Дата загрузки: {{file.getEvent()}}</p>
+        <p>Дата загрузки: {{file.getUploadTime()}}</p>
     </section>
     <div class="buttons">
         {% if token==file.getToken()%}

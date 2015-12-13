@@ -4,7 +4,7 @@ class File
     protected $id;
     protected $filename;
     protected $size;
-    protected $event;
+    protected $upload_time;
     protected $comment;
     protected $path;
     protected $token;
@@ -54,14 +54,14 @@ class File
         return $this->size . " байт";
     }
     
-    public function getEvent()
+    public function getUploadTime()
     {
-        return $this->event;
+        return $this->upload_time;
     }
     
-    public function setEvent($event)
+    public function setUploadTime($upload_time)
     {
-        $this->event = $event;
+        $this->upload_time = $upload_time;
     }
     
     public function getComment()
@@ -81,7 +81,7 @@ class File
     
     public function setPath($rootDirectory)
     {
-        $this->path = $rootDirectory . "/public/files/{$this->id}{$this->filename}";
+        $this->path = $rootDirectory . "/files/{$this->id}{$this->filename}";
     }
     
     public function getToken()
@@ -100,6 +100,26 @@ class File
             return true;
         }
         return false;
+    }
+
+
+    public function prepareToUpload($postData, $token){
+        $extension = pathinfo($postData['userfile']['name'], PATHINFO_EXTENSION);
+        if (preg_match("/php|html/i", $extension)) {
+            $fileName = rtrim($postData['userfile']['name'], $extension);
+            $this->setFileName($fileName . "txt");
+        } 
+        else {
+            $this->setFileName($postData['userfile']['name']);
+        }
+        $this->setSize($_FILES['userfile']['size']);
+        $this->setupload_time(date("Y-m-d H:i:s"));
+        $this->setComment('');
+        $this->setToken($token);
+    }
+
+    public function upload($file, $path, $id){
+        move_uploaded_file($file, $path."/files/$id{$this->filename}");
     }
     
     static function generateToken()

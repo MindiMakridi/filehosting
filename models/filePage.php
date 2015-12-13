@@ -1,6 +1,6 @@
 <?php
-$files = new FilesMapper($DBH);
+$files = new FilesMapper($app->PDO);
 if(!$file = $files->fetchFile($id)){
-	$app->redirect('/404');
+	$app->notFound();
 }
 $file->setPath($dir);

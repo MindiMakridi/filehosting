@@ -1,5 +1,5 @@
 <?php
-if(file_exists($dir."/public/files/".$filename)){
+if(file_exists($dir."/files/".$filename)){
 
 	try {
 		 $thumb = new Thumbnail($filename, $dir, 250, 250);
