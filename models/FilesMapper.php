@@ -1,23 +1,24 @@
 <?php
-
+namespace MyModels;
 class FilesMapper
 {
     protected $DBH;
     
-    function __construct(PDO $DBH)
+    function __construct(\PDO $DBH)
     {
         $this->DBH = $DBH;
     }
     
-    public function addFile($file)
+    public function addFile(File $file)
     {
         
+        $this->DBH->beginTransaction();
         try {
-            $this->DBH->beginTransaction();
-            $STH = $this->DBH->prepare("INSERT INTO files VALUES(NULL, :filename, :size, :upload_time, :comment, :token)");
+            
+            $STH = $this->DBH->prepare("INSERT INTO files(filename, size, upload_time, comment, token) VALUES(:filename, :size, :upload_time, :comment, :token)");
             $STH->bindValue(":filename", $file->getFileName());
             $STH->bindValue(":size", $file->getSize());
-            $STH->bindValue(":upload_time", $file->getupload_time());
+            $STH->bindValue(":upload_time", $file->getUploadTime());
             $STH->bindValue(":comment", $file->getComment());
             $STH->bindValue(":token", $file->getToken());
             $STH->execute();
@@ -27,9 +28,11 @@ class FilesMapper
             return $id;
         }
         
-        catch (Exception $e) {
+        catch (\Exception $e) {
             $this->DBH->rollBack();
-            echo $e->getMessage();
+            error_log($e->getMessage());
+            throw new \Exception("Something went wrong", 1);
+            
         }
         
     }
@@ -40,7 +43,7 @@ class FilesMapper
         $STH = $this->DBH->prepare("SELECT*FROM files WHERE id=:id");
         $STH->bindValue(":id", $id);
         $STH->execute();
-        $STH->setFetchMode(PDO::FETCH_CLASS, "File");
+        $STH->setFetchMode(\PDO::FETCH_CLASS, "MyModels\File");
         $result = $STH->fetch();
         return $result;
     }
@@ -49,7 +52,7 @@ class FilesMapper
     {
         $STH = $this->DBH->prepare("SELECT*FROM files ORDER BY id DESC LIMIT 0, 100");
         $STH->execute();
-        $STH->setFetchMode(PDO::FETCH_CLASS, "File");
+        $STH->setFetchMode(\PDO::FETCH_CLASS, "MyModels\File");
         $result = $STH->fetchAll();
         return $result;
     }

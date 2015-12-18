@@ -1,4 +1,5 @@
 <?php
+namespace MyModels;
 class Thumbnail
 {
     protected $fileName;
@@ -32,12 +33,12 @@ class Thumbnail
     
     protected function getThumbPath()
     {
-        $thumbPath = $this->path . "/public/thumbs/" . $this->fileName;
+        $thumbPath = $this->path . "/thumbs/" . $this->fileName;
         return $thumbPath;
     }
     protected function getSrcImagePath()
     {
-        $srcImagePath = $this->path . "/public/files/" . $this->fileName;
+        $srcImagePath = $this->path . "/files/" . $this->fileName;
         return $srcImagePath;
     }
     

@@ -122,12 +122,12 @@ class File
         }
 
         if(!$this->filename){
-            throw new \Exception("No file selected", 1);
+            throw new Exception("No file selected", 1);
             
         }
         $this->setSize($postData['userfile']['size']);
         if(!$this->size){
-            throw new \Exception("Maximum file size exceeded", 1);
+            throw new Exception("Maximum file size exceeded", 1);
         }
         $this->setUploadtime(date("Y-m-d H:i:s"));
         $this->setComment('');
