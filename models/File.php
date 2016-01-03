@@ -1,5 +1,5 @@
 <?php
-namespace MyModels;
+namespace Filehosting;
 class File
 {
     protected $id;
@@ -7,13 +7,16 @@ class File
     protected $size;
     protected $upload_time;
     protected $comment;
-    protected $path;
     protected $token;
-    protected $maxSize;
     
     public function getId()
     {
-        return $this->id;
+        if (isset($this->id)) {
+            return $this->id;
+        }
+        
+        throw new Exception("Property 'id' of File is not set", 1);
+        
     }
     
     public function setId($id)
@@ -23,33 +26,43 @@ class File
     
     public function getFileName()
     {
-        return $this->filename;
+        if (isset($this->filename)) {
+            return $this->filename;
+        }
+        
+        throw new Exception("Property 'filename' of File is not set", 1);
     }
     
     public function setFileName($name)
     {
+        $name           = preg_replace("/\.php|\.html|\.htaccess/", ".txt", $name);
         $this->filename = $name;
     }
     
     
     public function getSize()
     {
-        return $this->size;
+        if (isset($this->size)) {
+            return $this->size;
+        }
+        
+        throw new Exception("Property 'size' of File is not set", 1);
     }
     
     public function setSize($size)
     {
         $this->size = $size;
     }
-
-    public function setMaxSize($size){
-        $this->maxSize = $size;
-    }
-
-
+    
+    
+    
     
     public function getFormattedSize()
     {
+        if (!isset($this->size)) {
+            throw new Exception("Property 'size' of File is not set", 1);
+        }
+        
         if ($this->size / 1000000 >= 1) {
             $size = round($this->size / 1000000, 1);
             return "$size Мб";
@@ -64,7 +77,10 @@ class File
     
     public function getUploadTime()
     {
-        return $this->upload_time;
+        if (isset($this->upload_time)) {
+            return $this->upload_time;
+        }
+        throw new Exception("Property 'upload_time' of File is not set", 1);
     }
     
     public function setUploadTime($upload_time)
@@ -74,7 +90,10 @@ class File
     
     public function getComment()
     {
-        return $this->comment;
+        if (isset($this->comment)) {
+            return $this->comment;
+        }
+        throw new Exception("Property 'comment' of File is not set", 1);
     }
     
     public function setComment($comment)
@@ -82,19 +101,14 @@ class File
         $this->comment = $comment;
     }
     
-    public function getPath()
-    {
-        return $this->path;
-    }
     
-    public function setPath($rootDirectory)
-    {
-        $this->path = $rootDirectory . "/files/{$this->id}{$this->filename}";
-    }
     
     public function getToken()
     {
-        return $this->token;
+        if (isset($this->token)) {
+            return $this->token;
+        }
+        throw new Exception("Property 'token' of File is not set", 1);
     }
     
     public function setToken($token)
@@ -102,40 +116,12 @@ class File
         $this->token = $token;
     }
     
-    public function isImage()
+    public function isImage($path)
     {
-        if (getimagesize("$this->path")) {
+        if (getimagesize($path)) {
             return true;
         }
         return false;
-    }
-
-
-    public function prepareToUpload($postData, $token){
-        $extension = pathinfo($postData['userfile']['name'], PATHINFO_EXTENSION);
-        if (preg_match("/php|html/i", $extension)) {
-            $fileName = rtrim($postData['userfile']['name'], $extension);
-            $this->setFileName($fileName . "txt");
-        } 
-        else {
-            $this->setFileName($postData['userfile']['name']);
-        }
-
-        if(!$this->filename){
-            throw new \Exception("No file selected", 1);
-            
-        }
-        $this->setSize($postData['userfile']['size']);
-        if(!$this->size){
-            throw new \Exception("Maximum file size exceeded", 1);
-        }
-        $this->setUploadtime(date("Y-m-d H:i:s"));
-        $this->setComment('');
-        $this->setToken($token);
-    }
-
-    public function upload($file, $path, $id){
-        move_uploaded_file($file, $path."/files/$id{$this->filename}");
     }
     
     static function generateToken()
@@ -143,7 +129,7 @@ class File
         $string = "abcdefghijklmnopqrstuvwxyz1234567890";
         $length = mb_strlen($string);
         $cypher = "";
-        for ($i = 0; $i <= 10; $i++) {
+        for ($i = 0; $i <= 20; $i++) {
             $cypher .= mb_substr($string, mt_rand(0, $length - 1), 1);
         }
         $salt1 = "BlackBrier";
@@ -153,4 +139,4 @@ class File
         return md5($salt1 . $cypher . $salt2);
     }
     
-    }
+}

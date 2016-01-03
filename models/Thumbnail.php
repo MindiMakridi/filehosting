@@ -1,5 +1,5 @@
 <?php
-namespace MyModels;
+namespace Filehosting;
 class Thumbnail
 {
     protected $fileName;

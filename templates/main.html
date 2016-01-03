@@ -15,7 +15,7 @@
         {% for file in files%}
         <tr>
             <td>
-                <a href="http://filehosting.ru/files/{{file.getId()}}">{{file.getFileName()}}</a>
+                <a href="/files/{{file.getId()}}">{{file.getFileName()}}</a>
             </td>
             <td>
                 {{file.getFormattedSize()}}

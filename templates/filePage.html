@@ -7,9 +7,9 @@
         {{file.getFileName()}}<small>({{file.getFormattedSize()}})</small>
         <h1>
     </div>
-    {% if file.isImage()%}
-    <a href="http://filehosting.ru/files/{{file.getId()}}{{file.getfileName()}}">
-    <img src="http://filehosting.ru/thumbs/{{file.getId()}}{{file.getfileName()}}">
+    {% if file.isImage("files/#{file.getId()}#{file.getfileName()}")%}
+    <a href="/files/{{file.getId()}}{{file.getfileName()}}">
+    <img src="/thumbs/{{file.getId()}}{{file.getfileName()}}">
     </a>
     {% endif %}
     <section>
@@ -41,7 +41,7 @@
             </div>
         </form>
         {% endif %}
-        <a href="http://filehosting.ru/download/{{file.getId()}}/{{file.getfileName()}}" class="btn btn-primary">Скачать</a>
+        <a href="/download/{{file.getId()}}/{{file.getfileName()}}" class="btn btn-primary">Скачать</a>
     </div>
 </div>
 {% endblock %}
