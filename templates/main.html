@@ -15,10 +15,10 @@
         {% for file in files%}
         <tr>
             <td>
-                <a href="/files/{{file.getId()}}">{{file.getFileName()}}</a>
+                <a href="/files/{{file.getId()}}">{{file.getOriginalName()}}</a>
             </td>
             <td>
-                {{file.getFormattedSize()}}
+                {{getFormattedSize(file.getSize())}}
             </td>
             <td>
                 {{file.getUploadTime()}}

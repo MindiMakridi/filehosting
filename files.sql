@@ -29,6 +29,7 @@ CREATE TABLE `files` (
   `upload_time` datetime NOT NULL,
   `comment` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `token` varchar(200) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'COOKIE value of the original uploader',
+  `original_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -39,7 +40,7 @@ CREATE TABLE `files` (
 
 LOCK TABLES `files` WRITE;
 /*!40000 ALTER TABLE `files` DISABLE KEYS */;
-INSERT INTO `files` VALUES (1,'Alpha_Legion_Livery.jpg',16122,'2015-12-05 13:35:00','commentary here','020850e6114ae8f0a7b341526c0cc173'),(2,'index.txt',46,'2015-12-05 13:35:38','that was a html file','020850e6114ae8f0a7b341526c0cc173');
+INSERT INTO `files` VALUES (1,'Alpha_Legion_Livery.jpg',16122,'2016-01-11 20:53:24','1234','c1915fcc1a39db8c70a60f75a16a498d','Alpha_Legion_Livery.jpg'),(2,'index.txt',46,'2016-01-11 20:53:40','html file','c1915fcc1a39db8c70a60f75a16a498d','index.html');
 /*!40000 ALTER TABLE `files` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-12-13 17:15:19
+-- Dump completed on 2016-01-11 20:55:16

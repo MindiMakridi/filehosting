@@ -3,7 +3,8 @@ namespace Filehosting;
 class Thumbnail
 {
     protected $fileName;
-    protected $path;
+    protected $src;
+    protected $dst;
     protected $url;
     protected $thumbWidth;
     protected $thumbHeight;
@@ -11,17 +12,18 @@ class Thumbnail
     protected $imageSize;
     protected $imageFormat;
     
-    public function __construct($fileName, $path, $maxWidth, $maxHeight = NULL)
+    public function __construct($fileName, $src, $dst, $maxWidth, $maxHeight = NULL)
     {
         $this->fileName   = $fileName;
         $this->thumbWidth = $maxWidth;
-        $this->path       = $path;
+        $this->src = $src;
+        $this->dst = $dst;
         if ($maxHeight == NULL) {
             $maxHeight = $maxWidth;
         }
         $this->thumbHeight = $maxHeight;
         
-        $this->imageSize = getimagesize($this->getSrcImagePath());
+        $this->imageSize = getimagesize($this->src);
         
         if (!$this->imageSize) {
             throw new PreviewGenerationException("Incorrect file extension");
@@ -31,16 +33,7 @@ class Thumbnail
     }
     
     
-    protected function getThumbPath()
-    {
-        $thumbPath = $this->path . "/thumbs/" . $this->fileName;
-        return $thumbPath;
-    }
-    protected function getSrcImagePath()
-    {
-        $srcImagePath = $this->path . "/files/" . $this->fileName;
-        return $srcImagePath;
-    }
+    
     
     
     protected function getExtension()
@@ -86,11 +79,11 @@ class Thumbnail
     
     public function createThumbnail()
     {
-        if (!file_exists($this->getSrcImagePath())) {
+        if (!file_exists($this->src)) {
             throw new PreviewGenerationException("File doesn't exist");
         }
         
-        $image = call_user_func($this->getImageCreateFunction(), $this->getSrcImagePath());
+        $image = call_user_func($this->getImageCreateFunction(), $this->src);
         imagealphablending($image, true);
         
         $width  = imagesx($image);
@@ -109,7 +102,7 @@ class Thumbnail
         
         
         imagecopyresampled($tmpImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-        call_user_func($this->getImageFunction(), $tmpImage, $this->getThumbPath());
+        call_user_func($this->getImageFunction(), $tmpImage, $this->dst);
         return true;
         
         
@@ -120,7 +113,7 @@ class Thumbnail
     {
         
         $this->createThumbnail();
-        $image = file_get_contents($this->getThumbPath());
+        $image = file_get_contents($this->dst);
         
         
         header("Content-Type: {$this->getMime()}");

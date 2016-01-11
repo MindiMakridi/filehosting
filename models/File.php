@@ -4,6 +4,7 @@ class File
 {
     protected $id;
     protected $filename;
+    protected $original_name;
     protected $size;
     protected $upload_time;
     protected $comment;
@@ -15,7 +16,7 @@ class File
             return $this->id;
         }
         
-        throw new Exception("Property 'id' of File is not set", 1);
+        throw new \Exception("Property 'id' of File is not set", 1);
         
     }
     
@@ -30,13 +31,24 @@ class File
             return $this->filename;
         }
         
-        throw new Exception("Property 'filename' of File is not set", 1);
+        throw new \Exception("Property 'filename' of File is not set", 1);
     }
     
     public function setFileName($name)
     {
+        $this->original_name = $name;
         $name           = preg_replace("/\.php|\.html|\.htaccess/", ".txt", $name);
         $this->filename = $name;
+    }
+    
+
+    public function getOriginalName()
+    {
+        if (isset($this->original_name)) {
+            return $this->original_name;
+        }
+        
+        throw new \Exception("Property 'original_name' of File is not set", 1);
     }
     
     
@@ -46,7 +58,7 @@ class File
             return $this->size;
         }
         
-        throw new Exception("Property 'size' of File is not set", 1);
+        throw new \Exception("Property 'size' of File is not set", 1);
     }
     
     public function setSize($size)
@@ -55,32 +67,12 @@ class File
     }
     
     
-    
-    
-    public function getFormattedSize()
-    {
-        if (!isset($this->size)) {
-            throw new Exception("Property 'size' of File is not set", 1);
-        }
-        
-        if ($this->size / 1000000 >= 1) {
-            $size = round($this->size / 1000000, 1);
-            return "$size Мб";
-        }
-        
-        if ($this->size / 1000 >= 1) {
-            $size = round($this->size / 1000, 1);
-            return "$size Кб";
-        }
-        return $this->size . " байт";
-    }
-    
     public function getUploadTime()
     {
         if (isset($this->upload_time)) {
             return $this->upload_time;
         }
-        throw new Exception("Property 'upload_time' of File is not set", 1);
+        throw new \Exception("Property 'upload_time' of File is not set", 1);
     }
     
     public function setUploadTime($upload_time)
@@ -93,7 +85,7 @@ class File
         if (isset($this->comment)) {
             return $this->comment;
         }
-        throw new Exception("Property 'comment' of File is not set", 1);
+        throw new \Exception("Property 'comment' of File is not set", 1);
     }
     
     public function setComment($comment)
@@ -108,7 +100,7 @@ class File
         if (isset($this->token)) {
             return $this->token;
         }
-        throw new Exception("Property 'token' of File is not set", 1);
+        throw new \Exception("Property 'token' of File is not set", 1);
     }
     
     public function setToken($token)
@@ -116,27 +108,8 @@ class File
         $this->token = $token;
     }
     
-    public function isImage($path)
-    {
-        if (getimagesize($path)) {
-            return true;
-        }
-        return false;
-    }
     
-    static function generateToken()
-    {
-        $string = "abcdefghijklmnopqrstuvwxyz1234567890";
-        $length = mb_strlen($string);
-        $cypher = "";
-        for ($i = 0; $i <= 20; $i++) {
-            $cypher .= mb_substr($string, mt_rand(0, $length - 1), 1);
-        }
-        $salt1 = "BlackBrier";
-        $salt2 = "ThreadStone";
-        
-        
-        return md5($salt1 . $cypher . $salt2);
-    }
+    
+    
     
 }

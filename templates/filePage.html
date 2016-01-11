@@ -4,24 +4,25 @@
 <div class="content-wrapper">
     <div class="page-header">
         <h1>
-        {{file.getFileName()}}<small>({{file.getFormattedSize()}})</small>
+        {{file.getOriginalName()}}<small>({{getFormattedSize(file.getSize())}})</small>
         <h1>
     </div>
-    {% if file.isImage("files/#{file.getId()}#{file.getfileName()}")%}
-    <a href="/files/{{file.getId()}}{{file.getfileName()}}">
-    <img src="/thumbs/{{file.getId()}}{{file.getfileName()}}">
+    {% if isImage(pathToFile)%}
+    <a href="{{relPathToFile}}">
+    <img src="{{relPathToThumb}}">
     </a>
     {% endif %}
     <section>
-        <p>{{file.getComment()}}</p>
+        <p class="comment">{{file.getComment()}}</p>
+        
     </section>
     <section>
         <p>Дата загрузки: {{file.getUploadTime()}}</p>
     </section>
     <div class="buttons">
-        {% if token==file.getToken()%}
+        {% if canEdit(token, file.getToken()) %}
         <a href="#myModal" role="button" class="btn btn-success" data-toggle="modal">Редактировать</a>
-        <form class="edit" action="/" method="POST">
+        <form class="edit" action="/files/{{file.getId()}}" method="POST">
             <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-header edit-window">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -30,18 +31,34 @@
                 <div class="modal-body edit-window">
                     <p>
                         Комментарий
-                        <textarea class="form-control" rows="5" name="comment">{{file.getComment()}}</textarea>
+                        <textarea class="form-control" rows="5" name="comment">{{comment}}</textarea>
                     </p>
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        <strong>Ошибка!</strong> {{error}}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="modal-footer edit-window">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">закрыть</button>
-                    <input type="hidden" name="id" value="{{file.getId()}}">
+                    <input type="hidden" name="token" value ="{{file.getToken()}}">
                     <input type="submit" class="btn btn-primary" value="Сохранить">
                 </div>
             </div>
         </form>
         {% endif %}
-        <a href="/download/{{file.getId()}}/{{file.getfileName()}}" class="btn btn-primary">Скачать</a>
+        <a href="{{relDownloadPath}}" class="btn btn-primary">Скачать</a>
     </div>
 </div>
+<script>
+
+  $(document).ready(function(){
+  var error = {{ error|json_encode|raw }};
+
+        if(error){
+            $("#myModal").modal();
+        }
+});
+
+</script>
 {% endblock %}

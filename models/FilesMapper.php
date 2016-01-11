@@ -12,12 +12,13 @@ class FilesMapper
     public function addFile(File $file)
     {
           
-        $STH = $this->DBH->prepare("INSERT INTO files(filename, size, upload_time, comment, token) VALUES(:filename, :size, :upload_time, :comment, :token)");
+        $STH = $this->DBH->prepare("INSERT INTO files(filename, size, upload_time, comment, token, original_name) VALUES(:filename, :size, :upload_time, :comment, :token, :original_name)");
         $STH->bindValue(":filename", $file->getFileName());
         $STH->bindValue(":size", $file->getSize());
         $STH->bindValue(":upload_time", date("Y-m-d H:i:s", $file->getUploadTime()));
         $STH->bindValue(":comment", $file->getComment());
         $STH->bindValue(":token", $file->getToken());
+        $STH->bindValue(":original_name", $file->getOriginalName());
         $STH->execute();
         $id = $this->DBH->lastInsertId();
         return $id;
@@ -25,6 +26,18 @@ class FilesMapper
         
         
         
+    }
+
+    public function beginTransaction(){
+        $this->DBH->beginTransaction();
+    }
+
+    public function commit(){
+        $this->DBH->commit();
+    }
+
+    public function rollBack(){
+        $this->DBH->rollBack();
     }
     
     
@@ -34,6 +47,14 @@ class FilesMapper
         $STH->bindValue(":id", $id);
         $STH->execute();
         $STH->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
+        $result = $STH->fetch();
+        return $result;
+    }
+
+    public function fetchFileName($id){
+        $STH = $this->DBH->prepare("SELECT filename FROM files WHERE id=:id");
+        $STH->bindValue(":id", $id);
+        $STH->execute();
         $result = $STH->fetch();
         return $result;
     }
@@ -47,11 +68,11 @@ class FilesMapper
         return $result;
     }
     
-    public function editFile($file)
+    public function editFile($comment, $id)
     {
         $STH = $this->DBH->prepare("UPDATE files SET comment = :comment WHERE id=:id");
-        $STH->bindValue(":comment", $file->getComment());
-        $STH->bindValue(":id", $file->getId());
+        $STH->bindValue(":comment", $comment);
+        $STH->bindValue(":id", $id);
         $STH->execute();
     }
 }
