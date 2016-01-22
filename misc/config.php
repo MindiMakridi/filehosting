@@ -1,6 +1,6 @@
 <?php
 
-$host ='localhost';
+$dbHost ='localhost';
 $dbName = 'filehosting';
 $userName = "root";
 $pass = "qwerty";

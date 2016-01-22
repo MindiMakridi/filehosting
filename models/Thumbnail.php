@@ -2,7 +2,6 @@
 namespace Filehosting;
 class Thumbnail
 {
-    protected $fileName;
     protected $src;
     protected $dst;
     protected $url;
@@ -12,12 +11,13 @@ class Thumbnail
     protected $imageSize;
     protected $imageFormat;
     
-    public function __construct($fileName, $src, $dst, $maxWidth, $maxHeight = NULL)
+    public function __construct($id, $src, $root, $maxWidth, $maxHeight = NULL)
     {
-        $this->fileName   = $fileName;
+        
         $this->thumbWidth = $maxWidth;
         $this->src = $src;
-        $this->dst = $dst;
+        
+        
         if ($maxHeight == NULL) {
             $maxHeight = $maxWidth;
         }
@@ -28,7 +28,12 @@ class Thumbnail
         if (!$this->imageSize) {
             throw new PreviewGenerationException("Incorrect file extension");
         }
+        if(!file_exists($root."/thumbs/".$id)){
+            mkdir($root."/thumbs/".$id);
+        }
+        
         $this->imageFormat = $this->imageSize[2];
+        $this->dst = $root."/thumbs/".$id."/thumb.".$this->getExtension();
         
     }
     
@@ -45,7 +50,7 @@ class Thumbnail
                 return "gif";
             
             case IMAGETYPE_JPEG:
-                return "jpeg";
+                return "jpg";
             
             case IMAGETYPE_PNG:
                 return "png";
@@ -60,12 +65,18 @@ class Thumbnail
     protected function getImageFunction()
     {
         $imageFunction = "image" . $this->getExtension();
+        if($this->getExtension()=="jpg"){
+            $imageFunction = "imagejpeg";
+        }
         return $imageFunction;
     }
     
     protected function getImageCreateFunction()
     {
         $imageCreateFunction = "imagecreatefrom" . $this->getExtension();
+        if($this->getExtension()=="jpg"){
+            $imageCreateFunction = "imagecreatefromjpeg";
+        }
         return $imageCreateFunction;
     }
     

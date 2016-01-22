@@ -1,4 +1,4 @@
-{%extends 'layout.html' %}
+{%extends 'layout.html.twig' %}
 {% block page_title%} Recent Uploads {% endblock %}
 {% block main_class %} class="active" {% endblock %}
 {% block content %}
@@ -6,9 +6,9 @@
     <table class="table table-hover table-bordered">
     <thead>
         <tr>
-            <th>Filename</th>
-            <th>Size</th>
-            <th>Date</th>
+            <th>Название</th>
+            <th>Размер</th>
+            <th>Дата загрузки</th>
         </tr>
     </thead>
     <tbody>
@@ -18,10 +18,10 @@
                 <a href="/files/{{file.getId()}}">{{file.getOriginalName()}}</a>
             </td>
             <td>
-                {{getFormattedSize(file.getSize())}}
+                {{filesHelper.getFormattedSize(file)}}
             </td>
             <td>
-                {{file.getUploadTime()}}
+                {{filesHelper.getFormattedTime(file)}}
             </td>
             {% endfor %}
     </tbody>

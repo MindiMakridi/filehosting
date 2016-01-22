@@ -2,25 +2,26 @@
 namespace Filehosting;
 class FilesMapper
 {
-    protected $DBH;
+    protected $dbh;
     
-    function __construct(\PDO $DBH)
+    function __construct(\PDO $dbh)
     {
-        $this->DBH = $DBH;
+        $this->dbh = $dbh;
     }
     
     public function addFile(File $file)
     {
           
-        $STH = $this->DBH->prepare("INSERT INTO files(filename, size, upload_time, comment, token, original_name) VALUES(:filename, :size, :upload_time, :comment, :token, :original_name)");
-        $STH->bindValue(":filename", $file->getFileName());
-        $STH->bindValue(":size", $file->getSize());
-        $STH->bindValue(":upload_time", date("Y-m-d H:i:s", $file->getUploadTime()));
-        $STH->bindValue(":comment", $file->getComment());
-        $STH->bindValue(":token", $file->getToken());
-        $STH->bindValue(":original_name", $file->getOriginalName());
-        $STH->execute();
-        $id = $this->DBH->lastInsertId();
+        $sth = $this->dbh->prepare("INSERT INTO files(filename, size, upload_time, comment, token, original_name)
+         VALUES(:filename, :size, :upload_time, :comment, :token, :original_name)");
+        $sth->bindValue(":filename", $file->getFileName());
+        $sth->bindValue(":size", $file->getSize());
+        $sth->bindValue(":upload_time",  $file->getUploadTime());
+        $sth->bindValue(":comment", $file->getComment());
+        $sth->bindValue(":token", $file->getToken());
+        $sth->bindValue(":original_name", $file->getOriginalName());
+        $sth->execute();
+        $id = $this->dbh->lastInsertId();
         return $id;
         
         
@@ -29,50 +30,42 @@ class FilesMapper
     }
 
     public function beginTransaction(){
-        $this->DBH->beginTransaction();
+        $this->dbh->beginTransaction();
     }
 
     public function commit(){
-        $this->DBH->commit();
+        $this->dbh->commit();
     }
 
     public function rollBack(){
-        $this->DBH->rollBack();
+        $this->dbh->rollBack();
     }
     
     
     public function fetchFile($id)
     {
-        $STH = $this->DBH->prepare("SELECT*FROM files WHERE id=:id");
-        $STH->bindValue(":id", $id);
-        $STH->execute();
-        $STH->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
-        $result = $STH->fetch();
-        return $result;
-    }
-
-    public function fetchFileName($id){
-        $STH = $this->DBH->prepare("SELECT filename FROM files WHERE id=:id");
-        $STH->bindValue(":id", $id);
-        $STH->execute();
-        $result = $STH->fetch();
+        $sth = $this->dbh->prepare("SELECT*FROM files WHERE id=:id");
+        $sth->bindValue(":id", $id);
+        $sth->execute();
+        $sth->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
+        $result = $sth->fetch();
         return $result;
     }
     
     public function fetchLastUploadedFiles()
     {
-        $STH = $this->DBH->prepare("SELECT*FROM files ORDER BY id DESC LIMIT 0, 100");
-        $STH->execute();
-        $STH->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
-        $result = $STH->fetchAll();
+        $sth = $this->dbh->prepare("SELECT*FROM files ORDER BY id DESC LIMIT 0, 100");
+        $sth->execute();
+        $sth->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
+        $result = $sth->fetchAll();
         return $result;
     }
     
-    public function editFile($comment, $id)
+    public function editFileComment($comment, $id)
     {
-        $STH = $this->DBH->prepare("UPDATE files SET comment = :comment WHERE id=:id");
-        $STH->bindValue(":comment", $comment);
-        $STH->bindValue(":id", $id);
-        $STH->execute();
+        $sth = $this->dbh->prepare("UPDATE files SET comment = :comment WHERE id=:id");
+        $sth->bindValue(":comment", $comment);
+        $sth->bindValue(":id", $id);
+        $sth->execute();
     }
 }

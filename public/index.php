@@ -1,10 +1,10 @@
 <?php
 require __DIR__ . "/../vendor/autoload.php";
-require __DIR__ . "/../lib/config.php";
+require __DIR__ . "/../misc/config.php";
 
 $app = new \Slim\Slim(array(
     'view' => new \Slim\Views\Twig(),
-    "host" => $host,
+    "dbhost" => $dbHost,
     "dbname" => $dbName,
     "username" => $userName,
     "pass" => $pass,
@@ -18,27 +18,10 @@ $view->parserExtensions = array(
 );
 $view->setTemplatesDirectory(__DIR__ . "/../templates/");
 $twig = $view->getEnvironment();
-$sizeFunction = new Twig_SimpleFunction('getFormattedSize', function($size)
-{
-    return Filehosting\helpers\FilesHelper::getFormattedSize($size);
-});
-$isImageFunction = new Twig_SimpleFunction('isImage', function($path)
-{
-    return Filehosting\helpers\FilesHelper::isImage($path);
-});
-
-$canEditFunction = new Twig_SimpleFunction('canEdit', function($firstToken, $secondToken)
-{
-    return Filehosting\helpers\FilesHelper::canEdit($firstToken, $secondToken);
-});
-$twig->addFunction($sizeFunction);
-$twig->addFunction($isImageFunction);
-$twig->addFunction($canEditFunction);
 
 $app->container->singleton('PDO', function() use ($app)
 {
-    return new PDO("mysql:host=" . $app->config('host') . ";dbname=" . $app->config('dbname'),
-     $app->config('username'), $app->config('pass'));
+    return new PDO("mysql:host=" . $app->config('dbhost') . ";dbname=" . $app->config('dbname'), $app->config('username'), $app->config('pass'));
 });
 
 $app->container->singleton('filesMapper', function() use ($app)
@@ -60,7 +43,7 @@ $token = $app->getCookie('token');
 
 $app->get("/", function() use ($app)
 {
-    $app->render("index.html", array(
+    $app->render("index.html.twig", array(
         'maxSize' => $app->config('maxsize')
     ));
 });
@@ -69,81 +52,59 @@ $app->get("/main", function() use ($app)
 {
     $files             = $app->filesMapper;
     $lastUploadedFiles = $files->fetchLastUploadedFiles();
-    $app->render("main.html", array(
-        'files' => $lastUploadedFiles
-    ));
-});
-
-$app->get("/files/:id", function($id) use ($app, $token)
-{
-    
-    $files = $app->filesMapper;
-    if (!$file = $files->fetchFile($id)) {
-        $app->notFound();
-    }
-    $comment         = $file->getComment();
-    $pathToFile      = $app->filesHelper->getPathToFile($id . $file->getFileName());
-    $relPathToFile   = $app->filesHelper->getPathToFile($id . $file->getFileName(), true);
-    $relPathToThumb  = $app->filesHelper->getPathToThumb($file->getFileName(), $id, true);
-    $relDownloadPath = $app->filesHelper->getDownloadPath($file->getFileName(), $id);
-    $app->render("filePage.html", array(
-        'file' => $file,
-        "token" => $token,
-        "comment" => $comment,
-        "pathToFile" => $pathToFile,
-        "relPathToFile" => $relPathToFile,
-        "relPathToThumb" => $relPathToThumb,
-        "relDownloadPath" => $relDownloadPath
+    $app->render("main.html.twig", array(
+        'files' => $lastUploadedFiles,
+        'filesHelper' => $app->filesHelper
     ));
 });
 
 
-$app->post("/files/:id", function($id) use ($app, $token)
+$pageFunc = function($id) use ($app, $token)
 {
     $files = $app->filesMapper;
-    $file  = new Filehosting\File;
-    $file->setComment($app->request->post('comment'));
-    $file->setToken($app->request->post('token'));
     $error = "";
-    if (!$error = Filehosting\helpers\FilesHelper::validateEditorialForm($file, $token)) {
-        $files->editFile($file->getComment(), $id);
+    if ($app->request->post('comment')) {
+        $file = new Filehosting\File;
+        $file->setComment($app->request->post('comment'));
+        $file->setToken($app->request->post('token'));
+        
+        if (!$error = Filehosting\helpers\FilesHelper::validateEditorialForm($file, $token)) {
+            $files->editFileComment($file->getComment(), $id);
+            $app->redirect("/files/$id");
+        }
+        
+        $comment = $file->getComment();
     }
-    
-    $comment = $file->getComment();
     
     if (!$file = $files->fetchFile($id)) {
         $app->notFound();
     }
-    
-    $pathToFile      = $app->filesHelper->getPathToFile($id . $file->getFileName());
-    $relPathToFile   = $app->filesHelper->getPathToFile($id . $file->getFileName(), true);
-    $relPathToThumb  = $app->filesHelper->getPathToThumb($file->getFileName(), $id, true);
-    $relDownloadPath = $app->filesHelper->getDownloadPath($file->getFileName(), $id);
-    
-    
-    $app->render("filePage.html", array(
+    if (!isset($comment)) {
+        $comment = $file->getComment();
+    }
+    $app->render("filePage.html.twig", array(
         'file' => $file,
         "token" => $token,
         "comment" => $comment,
-        "pathToFile" => $pathToFile,
-        "relPathToFile" => $relPathToFile,
-        "relPathToThumb" => $relPathToThumb,
-        "relDownloadPath" => $relDownloadPath
+        "error" => $error,
+        "filesHelper" => $app->filesHelper
     ));
-    
-    
-});
+};
+
+$app->get("/files/:id", $pageFunc);
+
+
+$app->post("/files/:id", $pageFunc);
 
 $app->get("/download/:id/:originalFilename", function($id, $originalFilename) use ($app)
 {
-    $fileName = $app->filesMapper->fetchFileName($id);
-    $fileName = $fileName['filename'];
-    $path     = $app->filesHelper->getPathToFile($id . $fileName);
+    $file = $app->filesMapper->fetchFile($id);
+    $path = $app->filesHelper->getPathToFile($file);
     if (file_exists($path)) {
         header("X-SendFile: " . realpath($path));
         header("Content-Type: application/octet-stream");
         header("Content-disposition:attachment");
-        exit;
+        $app->stop();
     } else {
         $app->notFound();
     }
@@ -152,15 +113,14 @@ $app->get("/download/:id/:originalFilename", function($id, $originalFilename) us
 
 
 
-$app->get("/thumbs/:id/:file", function($id) use ($app)
+$app->get("/thumbs/:id/:fileName", function($id, $fileName) use ($app)
 {
-    $fileName = $app->filesMapper->fetchFileName($id);
-    $fileName = $fileName['filename'];
-    if (file_exists($app->filesHelper->getPathToFile($id . $fileName)) && 
-        !file_exists($app->filesHelper->getRootDirectory() . "/thumbs/" . $id)) {
-        mkdir($app->filesHelper->getRootDirectory() . "/thumbs/" . $id);
-        $thumb = new Filehosting\Thumbnail($fileName, $app->filesHelper->getPathToFile($id . $fileName),
-         $app->filesHelper->getPathToThumb($fileName, $id), 250, 250);
+    $file      = $app->filesMapper->fetchFile($id);
+    $thumbName = "thumb." . $app->filesHelper->getFileExtension($file);
+    
+    if (file_exists($app->filesHelper->getPathToFile($file)) && $thumbName == $fileName) {
+        
+        $thumb = new Filehosting\Thumbnail($id, $app->filesHelper->getPathToFile($file), $app->filesHelper->getRootDirectory(), 250, 250);
         $thumb->showThumbnail();
     }
     
@@ -175,7 +135,7 @@ $app->post("/", function() use ($app)
     
     $files = $app->filesMapper;
     $file  = new Filehosting\File;
-    if ($_FILES['userfile']['error'] == UPLOAD_ERR_OK) {
+    if ($_FILES['userfile']['error'] == UPLOAD_ERR_OK && $_FILES['userfile']['size'] <= $app->config('maxsize')) {
         $file->setFileName($_FILES['userfile']['name']);
         $file->setToken($app->getCookie('token'));
         $file->setUploadtime(time());

@@ -37,11 +37,11 @@ class File
     public function setFileName($name)
     {
         $this->original_name = $name;
-        $name           = preg_replace("/\.php|\.html|\.htaccess/", ".txt", $name);
-        $this->filename = $name;
+        $name                = preg_replace("/\.php|\.html|\.htaccess/", ".txt", $name);
+        $this->filename      = $name;
     }
     
-
+    
     public function getOriginalName()
     {
         if (isset($this->original_name)) {

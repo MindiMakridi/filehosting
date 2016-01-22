@@ -3,15 +3,16 @@ namespace Filehosting\helpers;
 
 class FilesHelper
 {
-    protected $rootDirectory;
+    protected $root;
     
     public function __construct($root)
     {
-        $this->rootDirectory = $root;
+        $this->root = $root;
     }
     
-    public static function getFormattedSize($size)
+    public function getFormattedSize(\Filehosting\File $file)
     {
+        $size = $file->getSize();
         if ($size / 1000000 >= 1) {
             $size = round($size / 1000000, 1);
             return "$size Мб";
@@ -24,6 +25,12 @@ class FilesHelper
         return $size . " байт";
     }
     
+    public function getFormattedTime(\Filehosting\File $file)
+    {
+        $time = $file->getUploadTime();
+        return date("H:i M d, Y", $time);
+    }
+    
     public static function generateToken()
     {
         $string = "abcdefghijklmnopqrstuvwxyz1234567890";
@@ -32,15 +39,15 @@ class FilesHelper
         for ($i = 0; $i <= 20; $i++) {
             $cypher .= mb_substr($string, mt_rand(0, $length - 1), 1);
         }
-        $salt1 = "BlackBrier";
-        $salt2 = "ThreadStone";
         
         
-        return md5($salt1 . $cypher . $salt2);
+        
+        return $cypher;
     }
     
-    public static function isImage($path)
+    public function isImage(\Filehosting\File $file)
     {
+        $path = $this->getPathToFile($file);
         if (getimagesize($path)) {
             return true;
         }
@@ -49,28 +56,41 @@ class FilesHelper
     
     public function getRootDirectory()
     {
-        return $this->rootDirectory;
+        return $this->root;
     }
     
-    public function getPathToFile($fileName, $relative = false)
+    public function getPathToFile(\Filehosting\File $file, $relative = false)
     {
+        $fileName = $file->getId() . $file->getFileName();
         if ($relative == true) {
             return "/files/" . $fileName;
         }
-        return $this->rootDirectory . "/files/" . $fileName;
+        
+        return $this->root . "/files/" . $fileName;
     }
     
-    public function getPathToThumb($fileName, $id, $relative = false)
+    public function getPathToThumb(\Filehosting\File $file, $relative = false)
     {
+        
+        $fileName = "thumb." . $this->getFileExtension($file);
+        $id       = $file->getId();
         if ($relative == true) {
             return "/thumbs/" . $id . "/" . $fileName;
         }
-        return $this->rootDirectory . "/thumbs/" . $id . "/" . $fileName;
+        return $this->root . "/thumbs/" . $id . "/" . $fileName;
     }
     
-    public function getDownloadPath($fileName, $id)
+    public function getDownloadPath(\Filehosting\File $file)
     {
+        $fileName = $file->getOriginalName();
+        $id       = $file->getId();
         return "/download/" . $id . "/" . $fileName;
+    }
+    
+    public function getFileExtension(\Filehosting\File $file)
+    {
+        $info = new \SplFileInfo($this->getPathToFile($file));
+        return $info->getExtension();
     }
     
     public static function validateEditorialForm(\Filehosting\File $file, $token)
@@ -89,16 +109,15 @@ class FilesHelper
     
     public function saveFile($tmpName, \Filehosting\File $file)
     {
-        $fileName = $file->getId() . $file->getFileName();
-        if (!move_uploaded_file($tmpName, $this->getPathToFile($fileName))) {
+        if (!move_uploaded_file($tmpName, $this->getPathToFile($file))) {
             return false;
         }
         return true;
     }
     
-    public static function canEdit($firstToken, $secondToken)
+    public function canEdit($token, \Filehosting\File $file)
     {
-        if ($firstToken == $secondToken) {
+        if ($token == $file->getToken()) {
             return true;
         }
         return false;

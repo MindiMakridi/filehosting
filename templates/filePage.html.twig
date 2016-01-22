@@ -1,15 +1,15 @@
-{% extends 'layout.html'%}
+{% extends 'layout.html.twig'%}
 {% block page_title %} {{file.getFileName()}} {% endblock %}
 {% block content %}
 <div class="content-wrapper">
     <div class="page-header">
         <h1>
-        {{file.getOriginalName()}}<small>({{getFormattedSize(file.getSize())}})</small>
+        {{file.getOriginalName()}}<small>({{filesHelper.getFormattedSize(file)}})</small>
         <h1>
     </div>
-    {% if isImage(pathToFile)%}
-    <a href="{{relPathToFile}}">
-    <img src="{{relPathToThumb}}">
+    {% if filesHelper.isImage(file)%}
+    <a href="{{filesHelper.getPathToFile(file, true)}}">
+    <img src="{{filesHelper.getPathToThumb(file, true)}}">
     </a>
     {% endif %}
     <section>
@@ -17,13 +17,13 @@
         
     </section>
     <section>
-        <p>Дата загрузки: {{file.getUploadTime()}}</p>
+        <p>Дата загрузки: {{filesHelper.getFormattedTime(file)}}</p>
     </section>
     <div class="buttons">
-        {% if canEdit(token, file.getToken()) %}
+        {% if filesHelper.canEdit(token, file) %}
         <a href="#myModal" role="button" class="btn btn-success" data-toggle="modal">Редактировать</a>
         <form class="edit" action="/files/{{file.getId()}}" method="POST">
-            <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal fileModal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-header edit-window">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                     <h3 id="myModalLabel">Редактировать информацию о файле</h3>
@@ -31,7 +31,7 @@
                 <div class="modal-body edit-window">
                     <p>
                         Комментарий
-                        <textarea class="form-control" rows="5" name="comment">{{comment}}</textarea>
+                        <textarea class="form-control" rows="5" maxlength="150" name="comment" required>{{comment}}</textarea>
                     </p>
                     {% if error %}
                     <div class="alert alert-danger">
@@ -47,7 +47,7 @@
             </div>
         </form>
         {% endif %}
-        <a href="{{relDownloadPath}}" class="btn btn-primary">Скачать</a>
+        <a href="{{filesHelper.getDownloadPath(file)}}" class="btn btn-primary">Скачать</a>
     </div>
 </div>
 <script>

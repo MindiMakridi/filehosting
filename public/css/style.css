@@ -1,8 +1,8 @@
-input[type="file"]{
+input[type=file].userfile{
 	display:inline-block;
 }
 
-.modal{
+.fileModal{
 	margin-top:200px;
 }
 .edit-window{
