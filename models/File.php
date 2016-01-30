@@ -12,12 +12,7 @@ class File
     
     public function getId()
     {
-        if (isset($this->id)) {
-            return $this->id;
-        }
-        
-        throw new \Exception("Property 'id' of File is not set", 1);
-        
+        return $this->id;    
     }
     
     public function setId($id)

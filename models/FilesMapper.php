@@ -16,7 +16,7 @@ class FilesMapper
          VALUES(:filename, :size, :upload_time, :comment, :token, :original_name)");
         $sth->bindValue(":filename", $file->getFileName());
         $sth->bindValue(":size", $file->getSize());
-        $sth->bindValue(":upload_time",  $file->getUploadTime());
+        $sth->bindValue(":upload_time", date("Y-m-d H:i:s", $file->getUploadTime()));
         $sth->bindValue(":comment", $file->getComment());
         $sth->bindValue(":token", $file->getToken());
         $sth->bindValue(":original_name", $file->getOriginalName());
@@ -44,7 +44,8 @@ class FilesMapper
     
     public function fetchFile($id)
     {
-        $sth = $this->dbh->prepare("SELECT*FROM files WHERE id=:id");
+        $sth = $this->dbh->prepare("SELECT id,filename, size, UNIX_TIMESTAMP(upload_time) AS upload_time, comment, token, original_name 
+            FROM files WHERE id=:id");
         $sth->bindValue(":id", $id);
         $sth->execute();
         $sth->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
@@ -54,7 +55,8 @@ class FilesMapper
     
     public function fetchLastUploadedFiles()
     {
-        $sth = $this->dbh->prepare("SELECT*FROM files ORDER BY id DESC LIMIT 0, 100");
+        $sth = $this->dbh->prepare("SELECT id,filename, size, UNIX_TIMESTAMP(upload_time) AS upload_time, comment, token, original_name 
+            FROM files ORDER BY id DESC LIMIT 0, 100");
         $sth->execute();
         $sth->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\File");
         $result = $sth->fetchAll();

@@ -1,5 +1,5 @@
 <?php
-namespace Filehosting\helpers;
+namespace Filehosting\Helpers;
 
 class FilesHelper
 {
@@ -48,7 +48,7 @@ class FilesHelper
     public function isImage(\Filehosting\File $file)
     {
         $path = $this->getPathToFile($file);
-        if (getimagesize($path)) {
+        if (getimagesize($path) && \Filehosting\Thumbnail::isExtensionAllowed(getimagesize($path)[2])) {
             return true;
         }
         return false;
@@ -92,6 +92,11 @@ class FilesHelper
         $info = new \SplFileInfo($this->getPathToFile($file));
         return $info->getExtension();
     }
+
+    public function getThumbName(\Filehosting\File $file){
+        $name = "thumb.".$this->getFileExtension($file);
+        return $name;
+    }
     
     public static function validateEditorialForm(\Filehosting\File $file, $token)
     {
@@ -113,6 +118,61 @@ class FilesHelper
             return false;
         }
         return true;
+    }
+
+
+    public function uploadFile(\Filehosting\File $file, \Filehosting\FilesMapper $files, $filePostData, $token){
+        $file->setFileName($filePostData['userfile']['name']);
+        $file->setToken($token);
+        $file->setUploadtime(time());
+        $file->setSize($filePostData['userfile']['size']);
+        $file->setComment('');
+        $files->beginTransaction();
+        $file->setId($files->addFile($file));
+        $tmpName = $filePostData['userfile']['tmp_name'];
+        if ($this->saveFile($tmpName, $file)) {
+            $files->commit();
+        } else {
+            $files->rollBack();
+        }
+    }
+
+    public function validateFileUpload($filePostData, $maxSize){
+        $error = '';
+        if($filePostData['userfile']['error'] == UPLOAD_ERR_OK && $filePostData['userfile']['size'] <= $maxSize){
+            return false;
+        }
+        else{
+            switch ($filePostData['userfile']['error']) { 
+            case UPLOAD_ERR_INI_SIZE: 
+                $error = "Превышен максимально допустимый размер файла"; 
+                break; 
+            case UPLOAD_ERR_FORM_SIZE: 
+                $error = "Превышен максимально допустимый размер файла";
+                break; 
+            case UPLOAD_ERR_PARTIAL: 
+                $error = "Файл не был до конца загружен"; 
+                break; 
+            case UPLOAD_ERR_NO_FILE: 
+                $error = "Файл не выбран"; 
+                break; 
+            case UPLOAD_ERR_NO_TMP_DIR: 
+                $error = "Ошибка загрузки"; 
+                break; 
+            case UPLOAD_ERR_CANT_WRITE: 
+                $error = "Ошибка загрузки"; 
+                break; 
+            case UPLOAD_ERR_EXTENSION: 
+                $error = "Файл не был загружен"; 
+                break; 
+
+            default: 
+                $error = "Файл не был загружен"; 
+                break; 
+        }
+        var_dump($maxSize);
+        return $error; 
+        }
     }
     
     public function canEdit($token, \Filehosting\File $file)

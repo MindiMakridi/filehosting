@@ -31,7 +31,7 @@
                 <div class="modal-body edit-window">
                     <p>
                         Комментарий
-                        <textarea class="form-control" rows="5" maxlength="150" name="comment" required>{{comment}}</textarea>
+                        <textarea class="form-control" rows="5" maxlength="150" name="comment" required>{{file.getComment()}}</textarea>
                     </p>
                     {% if error %}
                     <div class="alert alert-danger">

@@ -26,7 +26,7 @@ CREATE TABLE `files` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `filename` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `size` int(11) NOT NULL,
-  `upload_time` int(11) NOT NULL,
+  `upload_time` datetime NOT NULL,
   `comment` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `token` varchar(200) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'COOKIE value of the original uploader',
   `original_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE `files` (
 
 LOCK TABLES `files` WRITE;
 /*!40000 ALTER TABLE `files` DISABLE KEYS */;
-INSERT INTO `files` VALUES (1,'Alpha_Legion_Livery.jpg',16122,1453460181,'','c1915fcc1a39db8c70a60f75a16a498d','Alpha_Legion_Livery.jpg'),(2,'index.txt',46,1453460200,'html file','c1915fcc1a39db8c70a60f75a16a498d','index.html');
+INSERT INTO `files` VALUES (1,'Alpha_Legion_Livery.jpg',16122,'2016-01-29 17:12:14','123','ik03rl1sux4xfkfroodxb','Alpha_Legion_Livery.jpg'),(2,'index.txt',46,'2016-01-29 17:19:48','index.html','ik03rl1sux4xfkfroodxb','index.html');
 /*!40000 ALTER TABLE `files` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-01-22 18:48:29
+-- Dump completed on 2016-01-30 14:33:38

@@ -36,3 +36,9 @@ textarea.form-control{
 .comment{
 	white-space: pre-wrap;
 }
+
+.upload-error{
+	color:red;
+	margin-top: 20px;
+	font-size: 16px;
+}

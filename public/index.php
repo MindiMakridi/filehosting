@@ -31,27 +31,39 @@ $app->container->singleton('filesMapper', function() use ($app)
 
 $app->container->singleton('filesHelper', function() use ($app)
 {
-    return new Filehosting\helpers\FilesHelper(__DIR__);
+    return new Filehosting\Helpers\FilesHelper(__DIR__);
 });
 
 
 if (!$app->getCookie('token')) {
-    $app->setCookie('token', Filehosting\helpers\FilesHelper::generateToken(), '90 days');
+    $app->setCookie('token', Filehosting\Helpers\FilesHelper::generateToken(), '90 days');
 }
 
 $token = $app->getCookie('token');
 
-$app->get("/", function() use ($app)
+$app->map("/", function() use ($app)
 {
+    $error = "";
+    if($_FILES){
+        $files = $app->filesMapper;
+        $file  = new Filehosting\File;
+    
+        if (!$error=$app->filesHelper->validateFileUpload($_FILES, $app->config('maxsize'))) {
+            $app->filesHelper->uploadFile($file, $files, $_FILES, $app->getCookie('token'));
+            $id = $file->getId();
+            $app->redirect("/files/$id");
+        } 
+    }
+    
     $app->render("index.html.twig", array(
-        'maxSize' => $app->config('maxsize')
+        'maxSize' => $app->config('maxsize'),
+        'error' => $error
     ));
-});
+})->via('GET', 'POST');
 
 $app->get("/main", function() use ($app)
 {
-    $files             = $app->filesMapper;
-    $lastUploadedFiles = $files->fetchLastUploadedFiles();
+    $lastUploadedFiles = $app->filesMapper->fetchLastUploadedFiles();
     $app->render("main.html.twig", array(
         'files' => $lastUploadedFiles,
         'filesHelper' => $app->filesHelper
@@ -59,42 +71,33 @@ $app->get("/main", function() use ($app)
 });
 
 
-$pageFunc = function($id) use ($app, $token)
-{
+$app->map("/files/:id", function($id) use($app, $token){
     $files = $app->filesMapper;
+    if (!$file = $files->fetchFile($id)) {
+        $app->notFound();
+    }
     $error = "";
+    $comment = $file->getComment();
     if ($app->request->post('comment')) {
-        $file = new Filehosting\File;
         $file->setComment($app->request->post('comment'));
         $file->setToken($app->request->post('token'));
         
-        if (!$error = Filehosting\helpers\FilesHelper::validateEditorialForm($file, $token)) {
+        if (!$error = Filehosting\Helpers\FilesHelper::validateEditorialForm($file, $token)) {
             $files->editFileComment($file->getComment(), $id);
             $app->redirect("/files/$id");
         }
         
-        $comment = $file->getComment();
     }
     
-    if (!$file = $files->fetchFile($id)) {
-        $app->notFound();
-    }
-    if (!isset($comment)) {
-        $comment = $file->getComment();
-    }
+    
+    
     $app->render("filePage.html.twig", array(
         'file' => $file,
         "token" => $token,
-        "comment" => $comment,
         "error" => $error,
         "filesHelper" => $app->filesHelper
     ));
-};
-
-$app->get("/files/:id", $pageFunc);
-
-
-$app->post("/files/:id", $pageFunc);
+})->via('GET', 'POST');
 
 $app->get("/download/:id/:originalFilename", function($id, $originalFilename) use ($app)
 {
@@ -116,7 +119,7 @@ $app->get("/download/:id/:originalFilename", function($id, $originalFilename) us
 $app->get("/thumbs/:id/:fileName", function($id, $fileName) use ($app)
 {
     $file      = $app->filesMapper->fetchFile($id);
-    $thumbName = "thumb." . $app->filesHelper->getFileExtension($file);
+    $thumbName = $app->filesHelper->getThumbName($file);
     
     if (file_exists($app->filesHelper->getPathToFile($file)) && $thumbName == $fileName) {
         
@@ -129,40 +132,5 @@ $app->get("/thumbs/:id/:fileName", function($id, $fileName) use ($app)
         $app->notFound();
     }
 });
-
-$app->post("/", function() use ($app)
-{
-    
-    $files = $app->filesMapper;
-    $file  = new Filehosting\File;
-    if ($_FILES['userfile']['error'] == UPLOAD_ERR_OK && $_FILES['userfile']['size'] <= $app->config('maxsize')) {
-        $file->setFileName($_FILES['userfile']['name']);
-        $file->setToken($app->getCookie('token'));
-        $file->setUploadtime(time());
-        $file->setSize($_FILES['userfile']['size']);
-        $file->setComment('');
-        $files->beginTransaction();
-        $id = $files->addFile($file);
-        $file->setId($id);
-        $tmpName = $_FILES['userfile']['tmp_name'];
-        if ($app->filesHelper->saveFile($tmpName, $file)) {
-            $files->commit();
-        } else {
-            $files->rollBack();
-        }
-    } else {
-        throw new Filehosting\UploadException($_FILES['userfile']['error']);
-        
-    }
-    
-    
-    $app->redirect("/files/$id");
-    
-    
-});
-
-
-
-
 
 $app->run();

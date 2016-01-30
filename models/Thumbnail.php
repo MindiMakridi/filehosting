@@ -133,7 +133,20 @@ class Thumbnail
         
     }
     
-    
+    public static function isExtensionAllowed($imagetype){
+        switch ($imagetype) {
+            case IMAGETYPE_GIF:
+                return true;
+            
+            case IMAGETYPE_JPEG:
+                return true;
+            
+            case IMAGETYPE_PNG:
+                return true;
+
+            default: return false;
+    }
+    }
     
     
 }
