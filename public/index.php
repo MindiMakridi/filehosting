@@ -8,7 +8,8 @@ $app = new \Slim\Slim(array(
     "dbname" => $dbName,
     "username" => $userName,
     "pass" => $pass,
-    "maxsize" => $maxSize * 1000000
+    "maxsize" => $maxSize * 1000000,
+    'safeExtensions' => $safeExtensions
 ));
 
 
@@ -29,9 +30,14 @@ $app->container->singleton('filesMapper', function() use ($app)
     return new Filehosting\FilesMapper($app->PDO);
 });
 
+$app->container->singleton('commentsMapper', function() use($app)
+{
+    return new Filehosting\CommentsMapper($app->PDO);
+});
+
 $app->container->singleton('filesHelper', function() use ($app)
 {
-    return new Filehosting\Helpers\FilesHelper(__DIR__);
+    return new Filehosting\Helpers\FilesHelper(__DIR__, $app->filesMapper, $app->config('safeExtensions'));
 });
 
 
@@ -40,6 +46,7 @@ if (!$app->getCookie('token')) {
 }
 
 $token = $app->getCookie('token');
+$view->setData('filesHelper', $app->filesHelper);
 
 $app->map("/", function() use ($app)
 {
@@ -47,9 +54,14 @@ $app->map("/", function() use ($app)
     if($_FILES){
         $files = $app->filesMapper;
         $file  = new Filehosting\File;
-    
-        if (!$error=$app->filesHelper->validateFileUpload($_FILES, $app->config('maxsize'))) {
-            $app->filesHelper->uploadFile($file, $files, $_FILES, $app->getCookie('token'));
+        $postData = array(
+         'name'=> $_FILES['userfile']['name'],
+         'size'=> $_FILES['userfile']['size'],
+         'tmp_name'=> $_FILES['userfile']['tmp_name'],
+         'error'=>$_FILES['userfile']['error']);
+        $error=$app->filesHelper->validateFileUpload($postData, $app->config('maxsize'));
+        if (!$error) {
+            $app->filesHelper->uploadFile($file, $postData, $app->getCookie('token'));
             $id = $file->getId();
             $app->redirect("/files/$id");
         } 
@@ -65,8 +77,7 @@ $app->get("/main", function() use ($app)
 {
     $lastUploadedFiles = $app->filesMapper->fetchLastUploadedFiles();
     $app->render("main.html.twig", array(
-        'files' => $lastUploadedFiles,
-        'filesHelper' => $app->filesHelper
+        'files' => $lastUploadedFiles
     ));
 });
 
@@ -77,25 +88,54 @@ $app->map("/files/:id", function($id) use($app, $token){
         $app->notFound();
     }
     $error = "";
+    $commentaries = $app->commentsMapper->fetchComments($id);
+    $isImage =  Filehosting\Thumbnail::isExtensionAllowed($app->filesHelper->getPathToFile($file));
+    $canEdit = false;
+    if($file->getToken()==$token){
+        $canEdit = true;
+    }
     $comment = $file->getComment();
     if ($app->request->post('comment')) {
-        $file->setComment($app->request->post('comment'));
-        $file->setToken($app->request->post('token'));
+        $file->setComment(trim($app->request->post('comment')));
         
-        if (!$error = Filehosting\Helpers\FilesHelper::validateEditorialForm($file, $token)) {
+        if (!$error = Filehosting\Helpers\FilesHelper::validateEditorialForm($file, $app->request->post('token'))) {
             $files->editFileComment($file->getComment(), $id);
             $app->redirect("/files/$id");
         }
         
     }
-    
-    
+
+
+    if($app->request->post('commentary')){
+        $commentary = new Filehosting\Commentary;
+        $app->commentsMapper->beginTransaction();
+        $commentary->setFileId($id);
+        $commentary->setText($app->request->post('commentary'));
+        $commentary->setName($app->request->post('name'));
+        $commentary->setDate(time());
+        $path = NULL;
+        if($app->request->post('path')){
+            $path = $app->request->post('path');
+        }
+        $number = $app->commentsMapper->getLastNumber($id, $path);
+        $commentary->setPathString($path, $number);
+        $commentary->setNumber($number);
+        if($app->commentsMapper->addComment($commentary) && $app->request->post['token']==$token){
+            $app->commentsMapper->commit();
+        }
+        else{
+            $app->commentsMapper->rollBack();
+        }
+        $app->redirect("/files/$id");
+    }
     
     $app->render("filePage.html.twig", array(
         'file' => $file,
         "token" => $token,
+        "commentaries" => $commentaries,
         "error" => $error,
-        "filesHelper" => $app->filesHelper
+        "isImage" => $isImage,
+        "canEdit" => $canEdit
     ));
 })->via('GET', 'POST');
 
@@ -115,7 +155,18 @@ $app->get("/download/:id/:originalFilename", function($id, $originalFilename) us
 });
 
 
-
+$app->get("/view/:id", function($id) use ($app)
+{
+    $file = $app->filesMapper->fetchFile($id);
+    $path = $app->filesHelper->getPathToFile($file);
+    if($size=getimagesize($path)){
+        $app->response()->header('Content-Type', $size['mime']);
+        readfile($path);
+    }
+    else{
+        $app->notFound();
+    }
+});
 $app->get("/thumbs/:id/:fileName", function($id, $fileName) use ($app)
 {
     $file      = $app->filesMapper->fetchFile($id);
@@ -132,5 +183,4 @@ $app->get("/thumbs/:id/:fileName", function($id, $fileName) use ($app)
         $app->notFound();
     }
 });
-
 $app->run();

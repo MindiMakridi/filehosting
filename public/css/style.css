@@ -30,7 +30,7 @@ textarea.form-control{
 
 .content-wrapper{
 	padding-top: 48px;
-	margin-left: 10px;
+	margin-left: 20px;
 }
 
 .comment{
@@ -41,4 +41,51 @@ textarea.form-control{
 	color:red;
 	margin-top: 20px;
 	font-size: 16px;
+}
+
+.commentform{
+	width: 400px;
+}
+
+.commentform input{
+	margin-bottom: 20px;
+}
+
+.commentform input[type="submit"]{
+	margin-top: 10px;
+}
+
+.commentform textarea{
+	max-width: none;
+}
+
+#dropZone{
+    text-align: center;    
+    
+    width: 500px;
+    padding: 50px 0;
+    margin: 50px auto;
+    
+    
+    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+#dropZone.hover {
+	border: 1px solid #ccc;
+    background: #ddd;
+    border-color: #aaa;
+}
+
+#dropZone.error {
+    background: #faa;
+    border-color: #f00;
+}
+
+#dropZone.drop {
+	border: 1px solid #ccc;
+    background: #afa;
+    border-color: #0f0;
 }

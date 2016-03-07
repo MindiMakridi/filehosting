@@ -7,8 +7,8 @@
         {{file.getOriginalName()}}<small>({{filesHelper.getFormattedSize(file)}})</small>
         <h1>
     </div>
-    {% if filesHelper.isImage(file)%}
-    <a href="{{filesHelper.getPathToFile(file, true)}}">
+    {% if isImage%}
+    <a href="/view/{{file.getId()}}">
     <img src="{{filesHelper.getPathToThumb(file, true)}}">
     </a>
     {% endif %}
@@ -20,7 +20,7 @@
         <p>Дата загрузки: {{filesHelper.getFormattedTime(file)}}</p>
     </section>
     <div class="buttons">
-        {% if filesHelper.canEdit(token, file) %}
+        {% if canEdit %}
         <a href="#myModal" role="button" class="btn btn-success" data-toggle="modal">Редактировать</a>
         <form class="edit" action="/files/{{file.getId()}}" method="POST">
             <div class="modal fileModal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -41,7 +41,7 @@
                 </div>
                 <div class="modal-footer edit-window">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">закрыть</button>
-                    <input type="hidden" name="token" value ="{{file.getToken()}}">
+                    <input type="hidden" name="token" value ="{{token}}">
                     <input type="submit" class="btn btn-primary" value="Сохранить">
                 </div>
             </div>
@@ -49,7 +49,24 @@
         {% endif %}
         <a href="{{filesHelper.getDownloadPath(file)}}" class="btn btn-primary">Скачать</a>
     </div>
+    {% if commentaries%}
+    <h3>Комментарии</h3>
+    {%endif%}
+    {% for commentary in commentaries %}
+        <div class="commentary" style="margin-left: {{commentary.getDepth()}}px">
+            <div class="nick_name">
+                <span class="name">{{commentary.getName()}}</span>
+                <span class="date"><small>{{commentary.getDate()}}</small></span>
+            </div>
+            <span class="text">{{commentary.getText()}}</span>
+            <div class="reply">
+                <a href="" class="add-comment" data-path="{{commentary.getPath()}}">Ответить</a>
+            </div>
+        </div>
+    {% endfor %}
+    <a class="add-comment" href="">Добавить комментарий</a>
 </div>
+
 <script>
 
   $(document).ready(function(){
@@ -59,6 +76,53 @@
             $("#myModal").modal();
         }
 });
+
+document.body.addEventListener('click', showForm);
+
+function showForm(event){
+    if(event.target.className!="add-comment") return;
+    event.preventDefault();
+    var div = document.createElement('div');
+    div.className = 'commentform';
+    var header = document.createElement('h3');
+    header.innerHTML = "Добавить комментарий";
+    var form = document.createElement('form');
+    form.setAttribute('action', "/files/{{file.getId()}}");
+    form.setAttribute('method', "POST");
+    var name = document.createElement('input');
+    name.setAttribute('type', 'text');
+    name.setAttribute('name', 'name');
+    name.setAttribute('placeholder', "Ваше имя(необязательное поле)");
+    name.className = "string optional form-control";
+    var text = document.createElement('textarea');
+    text.setAttribute('name', 'commentary');
+    text.setAttribute('rows', 3);
+    text.className = "text optional form-control";
+    var path = event.target.getAttribute('data-path');
+    if(path){
+        var hidden = document.createElement('input');
+        hidden.setAttribute('type', 'hidden');
+        hidden.setAttribute('value', path);
+        hidden.setAttribute('name', 'path');
+        form.appendChild(hidden);
+    }
+    var token = document.createElement('input');
+    token.setAttribute('type', 'hidden');
+    token.setAttribute('value', '{{token|json_encode|raw}}');
+    token.setAttribute('name', 'token');
+    var submit = document.createElement('input');
+    submit.setAttribute('type', 'submit');
+    submit.className = "btn btn-default";
+    div.appendChild(header);
+    div.appendChild(form);
+    form.appendChild(name);
+    form.appendChild(text);
+    form.appendChild(token);
+    form.appendChild(submit);
+    event.target.parentNode.insertBefore(div, event.target);
+    event.target.parentNode.removeChild(event.target);
+
+}
 
 </script>
 {% endblock %}

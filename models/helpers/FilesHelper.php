@@ -4,10 +4,14 @@ namespace Filehosting\Helpers;
 class FilesHelper
 {
     protected $root;
+    protected $filesMapper;
+    protected $safeExtensions;
     
-    public function __construct($root)
+    public function __construct($root, $filesMapper, $extensions)
     {
         $this->root = $root;
+        $this->filesMapper = $filesMapper;
+        $this->safeExtensions = $extensions;
     }
     
     public function getFormattedSize(\Filehosting\File $file)
@@ -45,14 +49,6 @@ class FilesHelper
         return $cypher;
     }
     
-    public function isImage(\Filehosting\File $file)
-    {
-        $path = $this->getPathToFile($file);
-        if (getimagesize($path) && \Filehosting\Thumbnail::isExtensionAllowed(getimagesize($path)[2])) {
-            return true;
-        }
-        return false;
-    }
     
     public function getRootDirectory()
     {
@@ -63,10 +59,10 @@ class FilesHelper
     {
         $fileName = $file->getId() . $file->getFileName();
         if ($relative == true) {
-            return "/files/" . $fileName;
+            return "/../files/" . $fileName;
         }
         
-        return $this->root . "/files/" . $fileName;
+        return $this->root . "/../files/" . $fileName;
     }
     
     public function getPathToThumb(\Filehosting\File $file, $relative = false)
@@ -89,18 +85,17 @@ class FilesHelper
     
     public function getFileExtension(\Filehosting\File $file)
     {
-        $info = new \SplFileInfo($this->getPathToFile($file));
-        return $info->getExtension();
+        $extension = pathinfo($this->getPathToFile($file), PATHINFO_EXTENSION);
+        return $extension;
     }
 
     public function getThumbName(\Filehosting\File $file){
         $name = "thumb.".$this->getFileExtension($file);
         return $name;
     }
-    
+
     public static function validateEditorialForm(\Filehosting\File $file, $token)
     {
-        $file->setComment(trim($file->getComment()));
         if ($file->getToken() != $token) {
             return "токены не совпадают";
         }
@@ -121,25 +116,37 @@ class FilesHelper
     }
 
 
-    public function uploadFile(\Filehosting\File $file, \Filehosting\FilesMapper $files, $filePostData, $token){
-        $file->setFileName($filePostData['userfile']['name']);
+    public function uploadFile(\Filehosting\File $file, $filePostData, $token){
+        $file->setOriginalFileName($filePostData['name']);
+        $extension = pathinfo($filePostData['name'], PATHINFO_EXTENSION);
+        $name = $filePostData['name'];
+        
+        if(!in_array($extension, $this->safeExtensions)){
+            $name = $filePostData['name'].".txt";
+        }
+        
+        $file->setFileName($name);
         $file->setToken($token);
         $file->setUploadtime(time());
-        $file->setSize($filePostData['userfile']['size']);
+        $file->setSize($filePostData['size']);
         $file->setComment('');
-        $files->beginTransaction();
-        $file->setId($files->addFile($file));
-        $tmpName = $filePostData['userfile']['tmp_name'];
+        $this->filesMapper->beginTransaction();
+        $file->setId($this->filesMapper->addFile($file));
+        $tmpName = $filePostData['tmp_name'];
+        echo $extension;
         if ($this->saveFile($tmpName, $file)) {
-            $files->commit();
+            $this->filesMapper->commit();
         } else {
-            $files->rollBack();
+            $this->filesMapper->rollBack();
+            throw new Exception("Error occured during file uploading", 1);
+            
         }
+        
     }
 
     public function validateFileUpload($filePostData, $maxSize){
         $error = '';
-        if($filePostData['userfile']['error'] == UPLOAD_ERR_OK && $filePostData['userfile']['size'] <= $maxSize){
+        if($filePostData['error'] == UPLOAD_ERR_OK && $filePostData['size'] <= $maxSize){
             return false;
         }
         else{
@@ -167,20 +174,11 @@ class FilesHelper
                 break; 
 
             default: 
-                $error = "Файл не был загружен"; 
+                $error = "Превышен максимально допустимый размер файла"; 
                 break; 
         }
-        var_dump($maxSize);
         return $error; 
         }
-    }
-    
-    public function canEdit($token, \Filehosting\File $file)
-    {
-        if ($token == $file->getToken()) {
-            return true;
-        }
-        return false;
     }
     
 }

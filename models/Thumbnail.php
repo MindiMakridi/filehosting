@@ -64,19 +64,42 @@ class Thumbnail
     
     protected function getImageFunction()
     {
-        $imageFunction = "image" . $this->getExtension();
-        if($this->getExtension()=="jpg"){
-            $imageFunction = "imagejpeg";
-        }
+    	$imageFunction = NULL;
+      switch ($this->getExtension()) {
+      	case 'jpg':
+      		$imageFunction = "imagejpeg";
+      		break;
+      	case 'png':
+      		$imageFunction = "imagepng";
+      		break;
+      	case 'gif':
+      		$imageFunction = "imagegif";
+      		break;		
+      	
+      	default:
+      		throw new PreviewGenerationException("Incorrect file extension");
+      }
         return $imageFunction;
     }
     
     protected function getImageCreateFunction()
     {
-        $imageCreateFunction = "imagecreatefrom" . $this->getExtension();
-        if($this->getExtension()=="jpg"){
-            $imageCreateFunction = "imagecreatefromjpeg";
-        }
+        $imageCreateFunction = NULL;
+         switch ($this->getExtension()) {
+      	case 'jpg':
+      		$imageCreateFunction = "imagecreatefromjpeg";
+      		break;
+      	case 'png':
+      		$imageCreateFunction = "imagecreatefrompng";
+      		break;
+      	case 'gif':
+      		$imageCreateFunction = "imagecreatefromgif";
+      		break;		
+      	
+      	default:
+      		throw new PreviewGenerationException("Incorrect file extension");
+      }
+        
         return $imageCreateFunction;
     }
     
@@ -133,8 +156,11 @@ class Thumbnail
         
     }
     
-    public static function isExtensionAllowed($imagetype){
-        switch ($imagetype) {
+    public static function isExtensionAllowed($file){
+        if(!$imagetype=getimagesize($file)){
+        	return false;
+        }
+        switch ($imagetype[2]) {
             case IMAGETYPE_GIF:
                 return true;
             
