@@ -16,6 +16,35 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `comments`
+--
+
+DROP TABLE IF EXISTS `comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `comments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `text` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `posted_at` datetime NOT NULL,
+  `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Аноним',
+  `path` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `number` int(11) NOT NULL,
+  `file_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `file_id` (`file_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `comments`
+--
+
+LOCK TABLES `comments` WRITE;
+/*!40000 ALTER TABLE `comments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `comments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `files`
 --
 
@@ -31,7 +60,7 @@ CREATE TABLE `files` (
   `token` varchar(200) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'COOKIE value of the original uploader',
   `original_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +69,6 @@ CREATE TABLE `files` (
 
 LOCK TABLES `files` WRITE;
 /*!40000 ALTER TABLE `files` DISABLE KEYS */;
-INSERT INTO `files` VALUES (1,'Alpha_Legion_Livery.jpg',16122,'2016-01-29 17:12:14','123','ik03rl1sux4xfkfroodxb','Alpha_Legion_Livery.jpg'),(2,'index.txt',46,'2016-01-29 17:19:48','index.html','ik03rl1sux4xfkfroodxb','index.html');
 /*!40000 ALTER TABLE `files` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +81,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-01-30 14:33:38
+-- Dump completed on 2016-03-07 18:07:43
