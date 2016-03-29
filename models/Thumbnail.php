@@ -26,7 +26,7 @@ class Thumbnail
         $this->imageSize = getimagesize($this->src);
         
         if (!$this->imageSize) {
-            throw new PreviewGenerationException("Incorrect file extension");
+            throw new Filehosting\Exceptions\PreviewGenerationException("Incorrect file extension");
         }
         if(!file_exists($root."/thumbs/".$id)){
             mkdir($root."/thumbs/".$id);
@@ -56,7 +56,7 @@ class Thumbnail
                 return "png";
             
             default:
-                throw new PreviewGenerationException("Incorrect file extension");
+                throw new Filehosting\Exceptions\PreviewGenerationException("Incorrect file extension");
                 
         }
     }
@@ -77,7 +77,7 @@ class Thumbnail
       		break;		
       	
       	default:
-      		throw new PreviewGenerationException("Incorrect file extension");
+      		throw new Filehosting\Exceptions\PreviewGenerationException("Incorrect file extension");
       }
         return $imageFunction;
     }
@@ -97,7 +97,7 @@ class Thumbnail
       		break;		
       	
       	default:
-      		throw new PreviewGenerationException("Incorrect file extension");
+      		throw new Filehosting\Exceptions\PreviewGenerationException("Incorrect file extension");
       }
         
         return $imageCreateFunction;
@@ -114,7 +114,7 @@ class Thumbnail
     public function createThumbnail()
     {
         if (!file_exists($this->src)) {
-            throw new PreviewGenerationException("File doesn't exist");
+            throw new \Filehosting\Exceptions\PreviewGenerationException("File doesn't exist");
         }
         
         $image = call_user_func($this->getImageCreateFunction(), $this->src);

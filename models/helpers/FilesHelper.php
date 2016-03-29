@@ -6,12 +6,14 @@ class FilesHelper
     protected $root;
     protected $filesMapper;
     protected $safeExtensions;
+    protected $maxSize;
     
-    public function __construct($root, $filesMapper, $extensions)
+    public function __construct($root, $filesMapper, $extensions, $maxSize)
     {
         $this->root = $root;
         $this->filesMapper = $filesMapper;
         $this->safeExtensions = $extensions;
+        $this->maxSize = $maxSize;
     }
     
     public function getFormattedSize(\Filehosting\File $file)
@@ -144,13 +146,13 @@ class FilesHelper
         
     }
 
-    public function validateFileUpload($filePostData, $maxSize){
+    public function validateFileUpload($filePostData){
         $error = '';
-        if($filePostData['error'] == UPLOAD_ERR_OK && $filePostData['size'] <= $maxSize){
+        if($filePostData['error'] == UPLOAD_ERR_OK && $filePostData['size'] <= $this->maxSize){
             return false;
         }
         else{
-            switch ($filePostData['userfile']['error']) { 
+            switch ($filePostData['error']) { 
             case UPLOAD_ERR_INI_SIZE: 
                 $error = "Превышен максимально допустимый размер файла"; 
                 break; 

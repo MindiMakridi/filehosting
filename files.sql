@@ -26,13 +26,14 @@ CREATE TABLE `comments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `text` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `posted_at` datetime NOT NULL,
-  `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Аноним',
+  `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `path` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `number` int(11) NOT NULL,
+  `number` int(11) NOT NULL COMMENT 'Commentary position in the current branch',
   `file_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `file_id` (`file_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  KEY `file_id` (`file_id`),
+  CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=379 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,4 +82,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-03-07 18:07:43
+-- Dump completed on 2016-03-29 19:48:49

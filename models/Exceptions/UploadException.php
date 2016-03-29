@@ -1,5 +1,5 @@
 <?php
-namespace Filehosting;
+namespace Filehosting\Exceptions;
 
 class UploadException extends \Exception{
 

@@ -59,6 +59,18 @@ textarea.form-control{
 	max-width: none;
 }
 
+.commentary{
+    margin-bottom: 10px;
+}
+.nick_name{
+    color: #867979;
+    font-size: 12px;
+}
+
+.date{
+    margin-left: 10px;
+}
+
 #dropZone{
     text-align: center;    
     

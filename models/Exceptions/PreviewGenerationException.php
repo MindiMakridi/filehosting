@@ -1,5 +1,5 @@
 <?php
-namespace Filehosting;
+namespace Filehosting\Exceptions;
 class PreviewGenerationException extends \Exception {
 	public function getErrorMessage(){
 		$errorMsg = "Error on line ".$this->getLine().' in' . $this->getFile(). " : <b>". $this->getMessage(). "</b>";

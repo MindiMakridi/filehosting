@@ -1,5 +1,5 @@
 <?php
-namespace Filehosting;
+namespace Filehosting\Mappers;
 class FilesMapper
 {
     protected $dbh;
@@ -7,9 +7,10 @@ class FilesMapper
     function __construct(\PDO $dbh)
     {
         $this->dbh = $dbh;
+        $this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
     
-    public function addFile(File $file)
+    public function addFile(\Filehosting\File $file)
     {
           
         $sth = $this->dbh->prepare("INSERT INTO files(filename, size, upload_time, comment, token, original_name)

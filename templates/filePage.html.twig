@@ -1,6 +1,29 @@
 {% extends 'layout.html.twig'%}
 {% block page_title %} {{file.getFileName()}} {% endblock %}
 {% block content %}
+    <script type="text/x-template" id="commentary-form">
+        <div class="commentform">
+            <h3>Добавить комментарий</h3>
+            <form action="/files/{fileId}" method="POST" onsubmit="uploadComment(event)">
+                <input type="text" name="name" placeholder="Ваше имя(необязательное поле)" class="string optional form-control">
+                <textarea name="commentary" rows="3" class="text optional form-control" required></textarea>
+                <input type="hidden" value="{token}" name="token">
+                <input type="hidden" value="{path}" name="path">
+                <input type="submit" class="btn btn-default">
+            </form>
+            </div>
+        </script>
+        
+        <script type="text/x-template" id="commentary-template">
+            <div class="nick_name">
+                <span class="name">{name}</span>
+                <span class="date">{date}</span>
+           </div>
+           <span class="text">{text}</span>
+           <div class="reply">
+                <a href="" class="add-comment" data-path="{path}">Ответить</a>
+            </div>
+            </script>
 <div class="content-wrapper">
     <div class="page-header">
         <h1>
@@ -52,11 +75,12 @@
     {% if commentaries%}
     <h3>Комментарии</h3>
     {%endif%}
+    <div class="comments-wrapper">
     {% for commentary in commentaries %}
-        <div class="commentary" style="margin-left: {{commentary.getDepth()}}px">
+        <div class="commentary" id="{{commentary.getPath()}}" style="margin-left: {{commentary.getDepth()*25}}px">
             <div class="nick_name">
                 <span class="name">{{commentary.getName()}}</span>
-                <span class="date"><small>{{commentary.getDate()}}</small></span>
+                <span class="date"><small>{{commentary.getFormattedDate()}}</small></span>
             </div>
             <span class="text">{{commentary.getText()}}</span>
             <div class="reply">
@@ -65,8 +89,12 @@
         </div>
     {% endfor %}
     <a class="add-comment" href="">Добавить комментарий</a>
+    </div>
+    
 </div>
-
+    <script src="/js/uploadComment.js">
+        
+</script>
 <script>
 
   $(document).ready(function(){
@@ -76,50 +104,33 @@
             $("#myModal").modal();
         }
 });
-
+var id = {{file.getId()|json_encode()|raw}};
+var token = {{file.getToken()|json_encode()|raw}};
+var commentsName = {{name|json_encode()|raw}};
 document.body.addEventListener('click', showForm);
 
 function showForm(event){
     if(event.target.className!="add-comment") return;
     event.preventDefault();
-    var div = document.createElement('div');
-    div.className = 'commentform';
-    var header = document.createElement('h3');
-    header.innerHTML = "Добавить комментарий";
-    var form = document.createElement('form');
-    form.setAttribute('action', "/files/{{file.getId()}}");
-    form.setAttribute('method', "POST");
-    var name = document.createElement('input');
-    name.setAttribute('type', 'text');
-    name.setAttribute('name', 'name');
-    name.setAttribute('placeholder', "Ваше имя(необязательное поле)");
-    name.className = "string optional form-control";
-    var text = document.createElement('textarea');
-    text.setAttribute('name', 'commentary');
-    text.setAttribute('rows', 3);
-    text.className = "text optional form-control";
-    var path = event.target.getAttribute('data-path');
-    if(path){
-        var hidden = document.createElement('input');
-        hidden.setAttribute('type', 'hidden');
-        hidden.setAttribute('value', path);
-        hidden.setAttribute('name', 'path');
-        form.appendChild(hidden);
+    var path = null;
+    var wrapper = document.createElement('div');
+    var div = document.getElementById('commentary-form').innerHTML;
+    wrapper.innerHTML = div;
+    var form = wrapper.querySelector("form");
+    form.setAttribute('action', form.getAttribute('action').replace("{fileId}", id));
+    form.token.setAttribute('value', form.token.getAttribute('value').replace("{token}", token));
+    if(commentsName){
+        form.name.value = commentsName;
     }
-    var token = document.createElement('input');
-    token.setAttribute('type', 'hidden');
-    token.setAttribute('value', '{{token|json_encode|raw}}');
-    token.setAttribute('name', 'token');
-    var submit = document.createElement('input');
-    submit.setAttribute('type', 'submit');
-    submit.className = "btn btn-default";
-    div.appendChild(header);
-    div.appendChild(form);
-    form.appendChild(name);
-    form.appendChild(text);
-    form.appendChild(token);
-    form.appendChild(submit);
-    event.target.parentNode.insertBefore(div, event.target);
+     if(event.target.getAttribute('data-path')){
+        path = event.target.getAttribute('data-path');
+        form.path.setAttribute('value', path);
+    }
+    else{
+        form.removeChild(form.path);
+    }
+   
+    event.target.parentNode.insertBefore(wrapper, event.target);
     event.target.parentNode.removeChild(event.target);
 
 }

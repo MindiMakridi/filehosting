@@ -55,18 +55,15 @@ class Commentary{
 	public function getDate(){
 		return $this->date;
 	}
+        
+        public function getFormattedDate(){
+            return date("H:i M d, Y", $this->date);
+        }
 
 	public function setPath($path){
 		$this->path = $path;
 	}
 
-	public function setPathString($path, $number){
-		$string = str_pad(strval($number), 3, "0", STR_PAD_LEFT);
-		if($path != NULL){
-			$string = $path.".".$string;
-		}
-		$this->path = $string;
-	}
 
 	public function getPath(){
 		return $this->path;
@@ -82,7 +79,7 @@ class Commentary{
 
 	public function getDepth(){
 		$depth = preg_split("/\\./", $this->path);
-		$depth = (count($depth)-1)*25;
+		$depth = (count($depth)-1);
 		return $depth;
 	}
 }

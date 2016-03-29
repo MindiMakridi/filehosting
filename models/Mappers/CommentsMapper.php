@@ -1,11 +1,12 @@
 <?php
-namespace Filehosting;
+namespace Filehosting\Mappers;
 
 class CommentsMapper{
 	protected $dbh;
 
 	public function __construct($dbh){
 		$this->dbh = $dbh;
+		$this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 	}
 
 	public function beginTransaction(){
@@ -20,7 +21,10 @@ class CommentsMapper{
         $this->dbh->rollBack();
     }
 
-	public function addComment(Commentary $comment){
+	public function addComment(\Filehosting\Commentary $comment){
+                $this->beginTransaction();
+                $comment->setNumber($this->getLastNumber($comment->getFileId(), $comment->getPath()));
+                $comment->setPath(self::createNewPath($comment->getNumber(), $comment->getPath()));
 		$sth = $this->dbh->prepare("INSERT INTO comments(text, posted_at, file_id, path, name, number) 
 			VALUES(:text, :posted_at, :file_id, :path, :name, :number)");
 		$sth->bindValue(":text",      $comment->getText());
@@ -30,12 +34,14 @@ class CommentsMapper{
 		$sth->bindValue(":name",      $comment->getName());
 		$sth->bindValue(":number",    $comment->getNumber());
 		$sth->execute();
+                $this->commit();
 	}
 
-	public function fetchComments($id){
-		$sth = $this->dbh->prepare("SELECT id, text, posted_at AS date, file_id AS fileID, name, path 
-			FROM comments WHERE file_id = :id ORDER BY path");
+	public function fetchComments($id, $time = 0){
+		$sth = $this->dbh->prepare("SELECT id, text, UNIX_TIMESTAMP(posted_at) AS date, file_id AS fileID, name, path 
+			FROM comments WHERE file_id = :id HAVING date>:time ORDER BY path");
 		$sth->bindValue(":id", $id);
+                $sth->bindValue(":time", $time);
 		$sth->execute();
 		$sth->setFetchMode(\PDO::FETCH_CLASS, "Filehosting\Commentary");
 		$result = $sth->fetchAll();
@@ -59,4 +65,12 @@ class CommentsMapper{
 		}
 		return $result+1;
 	}
+        
+        public static function createNewPath($number, $path = NULL){
+            	$string = str_pad(strval($number), 3, "0", STR_PAD_LEFT);
+		if($path != NULL){
+			$string = $path.".".$string;
+		}
+		return $string;
+        }
 }
